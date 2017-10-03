@@ -11,16 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package schedulers
 
 import (
-  "math"
 	. "github.com/pingcap/check"
 	"github.com/pingcap/kvproto/pkg/pdpb"
+	"github.com/pingcap/pd/server/cache"
 	"github.com/pingcap/pd/server/core"
 	"github.com/pingcap/pd/server/schedule"
-	"github.com/pingcap/pd/server/cache"
+	"math"
 )
 
 func newTestScheduleConfig() (string, *MockSchedulerOptions) {
@@ -28,11 +27,12 @@ func newTestScheduleConfig() (string, *MockSchedulerOptions) {
 	return "abc", mso
 }
 func newTestReplication(mso *MockSchedulerOptions, maxReplicas int, locationLabels ...string) {
-		mso.MaxReplicas = maxReplicas
-		mso.LocationLabels = locationLabels
+	mso.MaxReplicas = maxReplicas
+	mso.LocationLabels = locationLabels
 }
 
 var _ = Suite(&testBalanceSpeedSuite{})
+
 type testBalanceSpeedSuite struct{}
 
 type testBalanceSpeedCase struct {
@@ -40,7 +40,6 @@ type testBalanceSpeedCase struct {
 	targetCount    uint64
 	expectedResult bool
 }
-
 
 func (s *testBalanceSpeedSuite) TestBalanceSpeed(c *C) {
 	testCases := []testBalanceSpeedCase{
@@ -72,9 +71,8 @@ func (s *testBalanceSpeedSuite) TestBalanceSpeed(c *C) {
 	s.testBalanceSpeed(c, testCases, 1000)
 }
 
-
 func (s *testBalanceSpeedSuite) testBalanceSpeed(c *C, tests []testBalanceSpeedCase, capaGB uint64) {
-	tc := NewMockCluster(core.NewMockIDAllocator())
+	tc := newMockCluster(core.NewMockIDAllocator())
 
 	for _, t := range tests {
 		tc.addLeaderStore(1, int(t.sourceCount))
@@ -94,7 +92,7 @@ func (s *testBalanceSpeedSuite) testBalanceSpeed(c *C, tests []testBalanceSpeedC
 }
 
 func (s *testBalanceSpeedSuite) TestBalanceLimit(c *C) {
-	tc := NewMockCluster(core.NewMockIDAllocator())
+	tc := newMockCluster(core.NewMockIDAllocator())
 	tc.addLeaderStore(1, 10)
 	tc.addLeaderStore(2, 20)
 	tc.addLeaderStore(3, 30)
@@ -116,7 +114,7 @@ type testBalanceLeaderSchedulerSuite struct {
 }
 
 func (s *testBalanceLeaderSchedulerSuite) SetUpTest(c *C) {
-	s.cluster = NewMockCluster(core.NewMockIDAllocator())
+	s.cluster = newMockCluster(core.NewMockIDAllocator())
 	s.tc = s.cluster
 	_, opt := newTestScheduleConfig()
 	lb, err := schedule.CreateScheduler("balance-leader", opt)
@@ -249,7 +247,7 @@ func (s *testBalanceRegionSchedulerSuite) getCache(scheduler schedule.Scheduler)
 }
 
 func (s *testBalanceRegionSchedulerSuite) TestBalance(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
+	cluster := newMockCluster(core.NewMockIDAllocator())
 	tc := cluster
 
 	_, opt := newTestScheduleConfig()
@@ -286,8 +284,8 @@ func (s *testBalanceRegionSchedulerSuite) TestBalance(c *C) {
 }
 
 func (s *testBalanceRegionSchedulerSuite) TestReplicas3(c *C) {
-	cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	newTestReplication(opt, 3, "zone", "rack", "host")
@@ -351,8 +349,8 @@ func (s *testBalanceRegionSchedulerSuite) TestReplicas3(c *C) {
 }
 
 func (s *testBalanceRegionSchedulerSuite) TestReplicas5(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	newTestReplication(opt, 5, "zone", "rack", "host")
@@ -389,8 +387,8 @@ func (s *testBalanceRegionSchedulerSuite) TestReplicas5(c *C) {
 }
 
 func (s *testBalanceRegionSchedulerSuite) TestStoreWeight(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	sb, err := schedule.CreateScheduler("balance-region", opt)
@@ -418,8 +416,8 @@ var _ = Suite(&testReplicaCheckerSuite{})
 type testReplicaCheckerSuite struct{}
 
 func (s *testReplicaCheckerSuite) TestBasic(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	rc := schedule.NewReplicaChecker(opt, cluster)
@@ -491,8 +489,8 @@ func (s *testReplicaCheckerSuite) TestBasic(c *C) {
 }
 
 func (s *testReplicaCheckerSuite) TestLostStore(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 	tc.addRegionStore(1, 1)
 	tc.addRegionStore(2, 1)
 	_, opt := newTestScheduleConfig()
@@ -509,11 +507,11 @@ func (s *testReplicaCheckerSuite) TestLostStore(c *C) {
 }
 
 func (s *testReplicaCheckerSuite) TestOffline(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
-  newTestReplication(opt, 3, "zone", "rack", "host")
+	newTestReplication(opt, 3, "zone", "rack", "host")
 
 	rc := schedule.NewReplicaChecker(opt, cluster)
 
@@ -564,8 +562,8 @@ func (s *testReplicaCheckerSuite) TestOffline(c *C) {
 }
 
 func (s *testReplicaCheckerSuite) TestDistinctScore(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	newTestReplication(opt, 3, "zone", "rack", "host")
@@ -644,8 +642,8 @@ func (s *testReplicaCheckerSuite) TestDistinctScore(c *C) {
 }
 
 func (s *testReplicaCheckerSuite) TestDistinctScore2(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	newTestReplication(opt, 5, "zone", "host")
@@ -678,8 +676,8 @@ var _ = Suite(&testBalanceHotWriteRegionSchedulerSuite{})
 type testBalanceHotWriteRegionSchedulerSuite struct{}
 
 func (s *testBalanceHotWriteRegionSchedulerSuite) TestBalance(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 
 	_, opt := newTestScheduleConfig()
 	hb, err := schedule.CreateScheduler("hot-write-region", opt)
@@ -739,8 +737,8 @@ var _ = Suite(&testBalanceHotReadRegionSchedulerSuite{})
 type testBalanceHotReadRegionSchedulerSuite struct{}
 
 func (s *testBalanceHotReadRegionSchedulerSuite) TestBalance(c *C) {
-  cluster := NewMockCluster(core.NewMockIDAllocator())
-  tc := cluster
+	cluster := newMockCluster(core.NewMockIDAllocator())
+	tc := cluster
 	_, opt := newTestScheduleConfig()
 	hb, err := schedule.CreateScheduler("hot-read-region", opt)
 	c.Assert(err, IsNil)
@@ -791,7 +789,6 @@ func (s *testBalanceHotReadRegionSchedulerSuite) TestBalance(c *C) {
 	checkTransferPeerWithLeaderTransfer(c, hb.Schedule(cluster), 1, 5)
 }
 
-
 func checkAddPeer(c *C, op *schedule.Operator, storeID uint64) {
 	c.Assert(op.Len(), Equals, 1)
 	c.Assert(op.Step(0).(schedule.AddPeer).ToStore, Equals, storeID)
@@ -816,5 +813,3 @@ func checkTransferLeaderFrom(c *C, op *schedule.Operator, sourceID uint64) {
 	c.Assert(op.Len(), Equals, 1)
 	c.Assert(op.Step(0).(schedule.TransferLeader).FromStore, Equals, sourceID)
 }
-
-
